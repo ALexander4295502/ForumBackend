@@ -31,8 +31,11 @@ if (!isProduction) {
   app.use(errorhandler());
 }
 
+var options = { server: { socketOptions: { keepAlive: 300000, connectTimeoutMS: 30000 } },
+    replset: { socketOptions: { keepAlive: 300000, connectTimeoutMS : 30000 } } };
+
 if(isProduction){
-  mongoose.connect(process.env.MONGODB_URI);
+  mongoose.connect(process.env.MONGODB_URI, options);
 } else {
   mongoose.connect('mongodb://localhost/conduit');
   mongoose.set('debug', true);
