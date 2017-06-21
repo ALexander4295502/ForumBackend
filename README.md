@@ -1,8 +1,8 @@
-# conduit-node
+# ForumBackend
 
 ![npm](https://img.shields.io/npm/v/conduit-node.svg) ![license](https://img.shields.io/npm/l/conduit-node.svg) ![github-issues](https://img.shields.io/github/issues/gothinkster/productionready-node-api.svg)  ![Circle CI build status](https://circleci.com/gh/gothinkster/productionready-node-api.svg?style=svg)
 
-conduit on node
+ForumBackend on node
 
 ![nodei.co](https://nodei.co/npm/conduit-node.png?downloads=true&downloadRank=true&stars=true)
 
@@ -27,7 +27,6 @@ conduit on node
 
  - **npm run start** : `node ./app.js`
  - **npm run dev** : `nodemon ./app.js`
- - **npm run test** : `echo "Error: no test specified" && exit 1`
  - **npm run readme** : `node ./node_modules/.bin/node-readme`
 
 ## Dependencies
@@ -62,7 +61,7 @@ Contributions welcome; Please submit all pull requests the against master branch
 
 ## Author
 
-undefined
+Zheng Yuan
 
 ## License
 
