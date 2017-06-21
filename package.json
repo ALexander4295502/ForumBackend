@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node ./app.js",
     "dev": "nodemon ./app.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "readme": "node ./node_modules/.bin/node-readme"
   },
   "repository": {
     "type": "git",
@@ -33,5 +34,8 @@
     "request": "2.69.0",
     "slug": "0.9.1",
     "underscore": "1.8.3"
+  },
+  "devDependencies": {
+    "node-readme": "^0.1.9"
   }
 }
