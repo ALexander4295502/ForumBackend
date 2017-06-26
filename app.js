@@ -45,6 +45,7 @@ require('./models/Users');
 require('./config/passport');
 require('./models/Article');
 require('./models/Comment');
+require('./models/PageViewCount');
 
 app.use(require('./routes'));
 

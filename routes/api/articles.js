@@ -66,7 +66,7 @@ router.get('/', auth.optional, function(req, res, next) {
                 .populate('author')
                 .exec(),
             Article.count(query).exec(),
-            req.payload ? User.findById(req.payload.id) : null,
+            req.payload ? User.findById(req.payload.id) : null
         ]).then(function(results){
             var articles = results[0];
             var articlesCount = results[1];
