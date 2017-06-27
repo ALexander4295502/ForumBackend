@@ -6,6 +6,37 @@ var router = require('express').Router();
 var passport = require('passport');
 var User = mongoose.model('User');
 var auth = require('../auth');
+var nev = require('email-verification')(mongoose);
+
+nev.configure({
+  verificationURL: process.env.NODE_ENV === 'production'? 'https://obscure-headland-52142.herokuapp.com/api/users/email-verification/${URL}' : 'http://127.0.0.1:1234/#/email-verification/${URL}',
+  persistentUserModel: User,
+  tempUserCollection: 'tempusers',
+
+  transportOptions: {
+    service: 'Gmail',
+    auth: {
+      user: 'yuanzhengstl@gmail.com',
+      pass: 'chengxi0314'
+    }
+  },
+
+  verifyMailOptions: {
+    from: 'Do Not Reply <yuanzhengstl@gmail.com>',
+    subject: 'Please confirm account',
+    html: 'Click the following link to confirm your account:</p><p>${URL}</p>',
+    text: 'Please confirm your account by clicking the following link: ${URL}'
+  }
+
+}, function (error, options) {
+});
+
+nev.generateTempUserModel(User, function (err, tempUserModel) {
+  if(err){
+    console.log("Generate Temp User Model Error  "+err.toString());
+  }
+  console.log('Generated Temp User Model: ' + (typeof tempUserModel === 'function'));
+});
 
 router.post('/users/login', function(req, res, next){
     if(!req.body.user.email){
@@ -30,15 +61,39 @@ router.post('/users/login', function(req, res, next){
 
 router.post('/users', function(req, res, next){
     var user = new User();
-
     user.username = req.body.user.username;
     user.email = req.body.user.email;
     user.setPassword(req.body.user.password);
     user.image = 'https://static.productionready.io/images/smiley-cyrus.jpg';
     user.bio = 'Left nothing';
-    user.save().then(function(){
-        return res.json({user: user.toAuthJSON()});
-    }).catch(next);
+    nev.createTempUser(user, function (err, existingPersistentUser, newTempUser) {
+      if(err){
+        return res.json({err: err.toString()});
+      }
+      if(existingPersistentUser){
+        return res.status(422).json({errors: {email: "is used by others"}});
+      }
+
+      console.log(newTempUser);
+
+      if(newTempUser) {
+        var URL = newTempUser[nev.options.URLFieldName];
+        nev.sendVerificationEmail(user.email, URL, function (err, info) {
+          if(err){
+            return res.json({err: err.toString()});
+          }
+          return res.json({
+            msg: 'An email has been sent to you. Please check it to verify your account.',
+            info: info
+          });
+        })
+      } else {
+        res.json({
+          msg: 'You have already signed up. Please check your email to verify your account.'
+        });
+      }
+    });
+
 });
 
 router.get('/user', auth.required, function(req, res, next){
@@ -74,5 +129,31 @@ router.put('/user', auth.required, function(req, res, next){
         });
     }).catch(next);
 });
+
+router.get('/users/email-verification/:url', function(req, res, next) {
+  var url = req.params.URL;
+  console.log("URL = "+url.toString());
+  nev.confirmTempUser(url, function (err, user) {
+    if(user){
+      nev.sendConfirmationEmail(user.email, function (err, info) {
+        if(err){
+          return res.json({err: err.toString()});
+        }
+        return res.json({
+          msg: 'Confirmed!',
+          user: user
+        });
+      });
+    } else {
+      return res.json({err: "this confirmation url is expired"});
+    }
+  })
+});
+
+router.param('url', function(req, res, next, url){
+  req.params.URL = url;
+  return next();
+});
+
 
 module.exports = router;
