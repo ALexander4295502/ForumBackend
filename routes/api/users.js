@@ -68,7 +68,15 @@ router.post('/users', function(req, res, next){
     user.bio = 'Left nothing';
     nev.createTempUser(user, function (err, existingPersistentUser, newTempUser) {
       if(err){
-        return res.json({err: err.toString()});
+        if(err.name === 'ValidationError'){
+          console.log("validationError!");
+          return res.status(422).json({
+            errors: Object.keys(err.errors).reduce(function (errors, key) {
+              errors[key] = err.errors[key].message;
+              return errors;
+            }, {})
+          });
+        }
       }
       if(existingPersistentUser){
         return res.status(422).json({errors: {email: "is used by others"}});
@@ -80,7 +88,15 @@ router.post('/users', function(req, res, next){
         var URL = newTempUser[nev.options.URLFieldName];
         nev.sendVerificationEmail(user.email, URL, function (err, info) {
           if(err){
-            return res.json({err: err.toString()});
+            if(err.name === 'ValidationError'){
+              console.log("validationError!");
+              return res.status(422).json({
+                errors: Object.keys(err.errors).reduce(function (errors, key) {
+                  errors[key] = err.errors[key].message;
+                  return errors;
+                }, {})
+              });
+            }
           }
           return res.json({
             msg: 'An email has been sent to you. Please check it to verify your account.',
@@ -137,7 +153,15 @@ router.get('/users/email-verification/:url', function(req, res, next) {
     if(user){
       nev.sendConfirmationEmail(user.email, function (err, info) {
         if(err){
-          return res.json({err: err.toString()});
+          if(err.name === 'ValidationError'){
+            console.log("validationError!");
+            return res.status(422).json({
+              errors: Object.keys(err.errors).reduce(function (errors, key) {
+                errors[key] = err.errors[key].message;
+                return errors;
+              }, {})
+            });
+          }
         }
         return res.json({
           msg: 'Confirmed!',
@@ -145,6 +169,15 @@ router.get('/users/email-verification/:url', function(req, res, next) {
         });
       });
     } else {
+      if(err.name === 'ValidationError'){
+        console.log("validationError!");
+        return res.status(422).json({
+          errors: Object.keys(err.errors).reduce(function (errors, key) {
+            errors[key] = err.errors[key].message;
+            return errors;
+          }, {})
+        });
+      }
       return res.json({err: "this confirmation url is expired"});
     }
   })
