@@ -7,6 +7,7 @@ var fs = require('fs'),
     session = require('express-session'),
     cors = require('cors'),
     passport = require('passport'),
+    flash = require('express-flash'),
     errorhandler = require('errorhandler'),
     mongoose = require('mongoose');
 
@@ -21,7 +22,7 @@ app.use(cors());
 app.use(require('morgan')('dev'));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-
+app.use(flash());
 app.use(require('method-override')());
 app.use(express.static(__dirname + '/public'));
 

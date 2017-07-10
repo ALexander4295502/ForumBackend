@@ -6,10 +6,13 @@ var router = require('express').Router();
 var passport = require('passport');
 var User = mongoose.model('User');
 var auth = require('../auth');
+var async = require('async');
+var nodemailer = require('nodemailer');
 var nev = require('email-verification')(mongoose);
+var crypto = require('crypto');
 
 nev.configure({
-  verificationURL: process.env.NODE_ENV === 'production'? 'https://obscure-headland-52142.herokuapp.com/api/users/email-verification/${URL}' : 'http://127.0.0.1:1234/#/email-verification/${URL}',
+  verificationURL: process.env.NODE_ENV === 'production'? 'https://alexander4295502.github.io/ForumAg2/#/email-verification/${URL}' : 'http://127.0.0.1:4200/#/email-verification/${URL}',
   persistentUserModel: User,
   tempUserCollection: 'tempusers',
 
@@ -120,6 +123,7 @@ router.get('/user', auth.required, function(req, res, next){
 });
 
 router.put('/user', auth.required, function(req, res, next){
+    console.log("i am in put /user");
     User.findById(req.payload.id).then(function(user){
         if(!user){ return res.sendStatus(401); }
 
@@ -183,10 +187,115 @@ router.get('/users/email-verification/:url', function(req, res, next) {
   })
 });
 
+router.post('/users/forgot', function (req, res, next) {
+  async.waterfall([
+    function (done) {
+      crypto.randomBytes(20, function (err, buf) {
+        var token = buf.toString('hex');
+        done(err, token);
+      });
+    },
+    function (token, done) {
+      User.findOne({ email: req.body.email }, function (err, user) {
+        if(!user){
+          return res.status(422).json({errors: {Account: " with that email address cannot be found"}});
+        }
+        user.resetPasswordToken = token;
+        user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+        user.save(function (err) {
+          done(err, token, user);
+        });
+      });
+    },
+    function (token, user, done) {
+      var smtpTransport = nodemailer.createTransport({
+        service: 'Gmail',
+        auth: {
+          user: 'yuanzhengstl@gmail.com',
+          pass: 'chengxi0314'
+        }
+      });
+      var mailOptions = {
+        to: user.email,
+        from: 'yuanzhengstl@gmail.com',
+        subject: 'Password Reset',
+        text: 'You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n' +
+        'Please click on the following link, or paste this into your browser to complete the process:\n\n' +
+        req.headers.origin + '/#/reset/' + token + '\n\n' +
+        'If you did not request this, please ignore this email and your password will remain unchanged.\n'
+      };
+      smtpTransport.sendMail(mailOptions, function (err) {
+        return res.json({
+          info: 'An e-mail has been sent to ' + user.email + ' with further instructions.'
+        });
+        done(err, 'done');
+      });
+    }
+  ], function (err) {
+    if(err) return res.status(422).json({
+      errors : err
+    });
+  });
+});
+
+router.get('/users/reset/:token', function (req, res) {
+  User.findOne({
+    resetPasswordToken: req.params.token,
+    resetPasswordExpires: { $gt: Date.now() }},
+    function (err, user) {
+      if(!user){
+        return res.status(422).json({errors: {Password_reset_token : " is invalid or has expired. "}});
+      }
+      if(err){
+        return res.status(422).json({errors: err.toString()});
+      }
+      return res.json({user: user});
+  })
+})
+
+router.post('/users/reset/:token', function (req, res) {
+  async.waterfall([
+    function (done) {
+      console.log(req.body);
+      User.findOne({ resetPasswordToken: req.params.token, resetPasswordExpires: {$gt: Date.now()}}, function (err, user) {
+        if(!user) {
+          console.log("1");
+          return res.json({errors: {Password_reset_token : " is invalid or has expired. "}});
+        }
+        if(typeof req.body.password === 'undefined'){
+          console.log("2");
+          return res.json({errors: {newPassword : " cannot be empty. "}});
+        } else {
+          user.setPassword(req.body.password);
+          user.resetPasswordExpires = undefined;
+          user.resetPasswordToken = undefined;
+          user.save(function (err) {
+            if(err) {
+              return res.json({errors: {savePassword : " error. "}});
+            }
+            return res.json({info: {NewPassword : " set successfully. "}})
+            done(err);
+          });
+        }
+      });
+    }
+  ], function (err) {
+    if(err) {
+      console.log("4");
+      return res.status(422).json({errors : err});
+    };
+  })
+});
+
 router.param('url', function(req, res, next, url){
   req.params.URL = url;
   return next();
 });
+
+router.param('token', function (req, res, next, token) {
+  req.params.token = token;
+  return next();
+})
 
 
 module.exports = router;
