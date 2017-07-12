@@ -150,6 +150,7 @@ router.get('/:article', auth.optional, function(req, res, next) {
 });
 
 router.put('/:article', auth.required, function(req, res, next) {
+    console.log(req.body.article);
     User.findById(req.payload.id).then(function(user){
         if(req.article.author._id.toString() === req.payload.id.toString()){
 
@@ -169,6 +170,10 @@ router.put('/:article', auth.required, function(req, res, next) {
 
             if(typeof req.body.article.body !== 'undefined'){
                 req.article.body = req.body.article.body;
+            }
+
+            if(typeof req.body.article.tagList !== 'undefined'){
+              req.article.tagList = req.body.article.tagList;
             }
 
             req.article.save().then(function(article){
