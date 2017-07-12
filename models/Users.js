@@ -93,7 +93,8 @@ UserSchema.methods.isFavorite = function(id){
 };
 
 UserSchema.methods.toProfileJSONFor = function(user){
-    return {
+  console.log("userschema: user is "+JSON.stringify(user));
+  return {
         username: this.username,
         bio: this.bio,
         image: this.image || 'https://static.productionready.io/images/smiley-cyrus.jpg',

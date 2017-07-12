@@ -13,6 +13,14 @@ router.post('/', auth.required, function(req, res, next) {
     User.findById(req.payload.id).then(function(user){
         if (!user) { return res.sendStatus(401); }
 
+        console.log(JSON.stringify(req.body.article));
+
+        if (req.body.article.title === "") {
+          return res.status(422).json({errors: {Title: "can't be blank"}});
+        } else if (req.body.article.body === "") {
+          return res.status(422).json({errors: {Body: "can't be blank"}});
+        }
+
         var article = new Article(req.body.article);
 
         article.author = user;
@@ -144,6 +152,13 @@ router.get('/:article', auth.optional, function(req, res, next) {
 router.put('/:article', auth.required, function(req, res, next) {
     User.findById(req.payload.id).then(function(user){
         if(req.article.author._id.toString() === req.payload.id.toString()){
+
+            if (req.body.article.title === "") {
+            return res.status(422).json({errors: {Title: "can't be blank"}});
+            } else if (req.body.article.body === "") {
+            return res.status(422).json({errors: {Body: "can't be blank"}});
+            }
+
             if(typeof req.body.article.title !== 'undefined'){
                 req.article.title = req.body.article.title;
             }
@@ -246,9 +261,9 @@ router.get('/:article/comments', auth.optional, function(req, res, next){
                     createdAt: 'desc'
                 }
             }
-        }).execPopulate().then(function(user) { //article should be user?
+        }).execPopulate().then(function(article) { //article should be user?
             return res.json({comments: req.article.comments.map(function(comment){
-                return comment.toJSONFor(user);
+              return comment.toJSONFor(user);
             })});
         });
     }).catch(next);
@@ -258,7 +273,12 @@ router.delete('/:article', auth.required, function(req, res, next) {
     User.findById(req.payload.id).then(function(){
         if(req.article.author._id.toString() === req.payload.id.toString()){
             return req.article.remove().then(function(){
-                return res.sendStatus(204);
+                Comment.find({article: req.article}).remove().exec(function (err) {
+                  if (err) {
+                    return res.sendStatus(403);
+                  }
+                  return res.sendStatus(204);
+                });
             });
         } else {
             return res.sendStatus(403);

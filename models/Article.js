@@ -3,6 +3,7 @@
  */
 var mongoose = require('mongoose');
 var uniqueValidator = require('mongoose-unique-validator');
+var mongooseLifeCircle = require('mongoose-lifecycle');
 var slug = require('slug'); // package we'll use to auto create URL slugs
 var User = mongoose.model('User');
 
@@ -17,10 +18,12 @@ var ArticleSchema = new mongoose.Schema({
     author: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
 }, {timestamps: true});
 
+ArticleSchema.plugin(mongooseLifeCircle);
 ArticleSchema.plugin(uniqueValidator, {message: 'is already taken'});
 
 ArticleSchema.methods.slugify = function() {
-    this.slug = slug(this.title) + '-' + (Math.random() * Math.pow(36, 6) | 0).toString(36);
+    console.log(`id is ${this._id.toString().substring(0,5)}`);
+    this.slug = slug(this.title)+this._id.toString().substring(0,5);
 };
 
 ArticleSchema.methods.toJSONFor = function(user){
