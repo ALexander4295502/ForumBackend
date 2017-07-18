@@ -244,6 +244,20 @@ router.delete('/:article/comments/:comment', auth.required, function(req, res, n
     }
 });
 
+router.put('/:article/comments/:comment', auth.required, function(req, res, next) {
+  User.findById(req.payload.id).then(function(user){
+    if(req.comment.author.toString() === req.payload.id.toString()) {
+      req.comment.body = req.body.comment.body;
+      req.comment.author = user;
+      return req.comment.save().then(function (comment) {
+        return res.json({comment: comment.toJSONFor(user)});
+      });
+    } else {
+      return res.sendStatus(403);
+    }
+  }).catch(next);
+});
+
 router.param('comment', function(req, res, next, id) {
     Comment.findById(id).then(function(comment){
         if(!comment) { return res.sendStatus(404); }
