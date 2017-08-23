@@ -1,5 +1,4 @@
 var fs = require('fs'),
-    http = require('http'),
     path = require('path'),
     methods = require('methods'),
     express = require('express'),
@@ -89,3 +88,8 @@ var server = app.listen( process.env.PORT || 3000, function(){
   console.log('Listening on port ' + server.address().port);
   console.log('Server running at ' + server.address().address);
 });
+
+
+// Create socket io object (with jwt auth)
+var io = require('socket.io').listen(server);
+require('./socket/chat')(io);

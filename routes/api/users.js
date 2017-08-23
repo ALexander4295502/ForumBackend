@@ -12,7 +12,9 @@ var nev = require('email-verification')(mongoose);
 var crypto = require('crypto');
 
 nev.configure({
-  verificationURL: process.env.NODE_ENV === 'production'? 'https://alexander4295502.github.io/ForumAg2/#/email-verification/${URL}' : 'http://127.0.0.1:4200/#/email-verification/${URL}',
+  verificationURL: process.env.NODE_ENV === 'production'?
+    'https://alexander4295502.github.io/ForumAg2/#/email-verification/${URL}' :
+    'http://127.0.0.1:4200/#/email-verification/${URL}',
   persistentUserModel: User,
   tempUserCollection: 'tempusers',
 

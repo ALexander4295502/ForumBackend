@@ -93,7 +93,6 @@ UserSchema.methods.isFavorite = function(id){
 };
 
 UserSchema.methods.toProfileJSONFor = function(user){
-  console.log("userschema: user is "+JSON.stringify(user));
   return {
         username: this.username,
         bio: this.bio,

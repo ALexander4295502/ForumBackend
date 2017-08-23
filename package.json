@@ -41,6 +41,8 @@
     "passport-local": "1.0.0",
     "request": "2.69.0",
     "slug": "0.9.1",
+    "socket.io": "^2.0.3",
+    "socketio-jwt": "^4.5.0",
     "underscore": "1.8.3"
   },
   "devDependencies": {
