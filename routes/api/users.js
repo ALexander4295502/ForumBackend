@@ -13,7 +13,7 @@ var crypto = require('crypto');
 
 nev.configure({
   verificationURL: process.env.NODE_ENV === 'production'?
-    'https://alexander4295502.github.io/ForumAg2/#/email-verification/${URL}' :
+    'https://forum.zheng.town/#/email-verification/${URL}' :
     'http://127.0.0.1:4200/#/email-verification/${URL}',
   persistentUserModel: User,
   tempUserCollection: 'tempusers',
@@ -27,7 +27,7 @@ nev.configure({
   },
 
   verifyMailOptions: {
-    from: 'Do Not Reply <yuanzhengstl@gmail.com>',
+    from: 'Do Not Reply <forumzy@yahoo.com>',
     subject: 'Please confirm account',
     html: 'Click the following link to confirm your account:</p><p>${URL}</p>',
     text: 'Please confirm your account by clicking the following link: ${URL}'
