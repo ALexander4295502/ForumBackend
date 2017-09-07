@@ -38,14 +38,6 @@ module.exports = function(io) {
 
       currentClients.push(user.username);
 
-      // console.log(
-      //   `\n User:  "${user.username}" login!\n `
-      // );
-      // console.log(
-      //   "current users: ",
-      //   currentClients
-      // );
-
       socket.on('sendMessage', function (_message) {
         if (currentClients.indexOf(_message.to) !== -1) {
           io.to(_message.to).emit('receiveMessage', _message);
@@ -54,9 +46,6 @@ module.exports = function(io) {
 
 
       socket.on('disconnect', function(){
-        // console.log(
-        //   `\n User "${user.username}" disconnect \n`
-        // );
         socket.leave(user.username);
         let userIndex = currentClients.indexOf(user.username);
         if (userIndex !== -1) {

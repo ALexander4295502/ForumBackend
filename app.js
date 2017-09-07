@@ -10,6 +10,10 @@ var fs = require('fs'),
     errorhandler = require('errorhandler'),
     mongoose = require('mongoose');
 
+var username = process.env.MONGO_USER;
+var password = process.env.MONGO_PW;
+var mongoDB_url = `mongodb://${username}:${password}@ds121674.mlab.com:21674/forum-zy`;
+
 var isProduction = process.env.NODE_ENV === 'production';
 
 // Create global app object
@@ -35,7 +39,7 @@ var options = { server: { socketOptions: { keepAlive: 300000, connectTimeoutMS: 
     replset: { socketOptions: { keepAlive: 300000, connectTimeoutMS : 30000 } } };
 
 if(isProduction){
-  mongoose.connect(process.env.MONGODB_URI, options);
+  mongoose.connect(mongoDB_url, options);
 } else {
   mongoose.connect('mongodb://localhost/conduit');
   mongoose.set('debug', true);
