@@ -85,7 +85,7 @@ router.post('/users', function(req, res, next){
         var mailgun = new Mailgun({apiKey: mailgun_api_key, domain: mailgun_domain});
         var data = {
           //Specify email data
-          from: ``,
+          from: mailgun_from_who,
           //The email to contact
           to: user.email,
           //Subject and text data
