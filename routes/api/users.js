@@ -10,29 +10,20 @@ var async = require('async');
 var nodemailer = require('nodemailer');
 var nev = require('email-verification')(mongoose);
 var crypto = require('crypto');
+var Mailgun = require('mailgun-js');
+
+var mailgun_api_key = 'key-41e1018166391483ab62350f08ece833';
+var mailgun_domain = 'sandbox0b45de7707c64ded8552042a6da18f95.mailgun.org';
+var mailgun_from_who = 'Do Not Reply <email@zheng.town>';
+
+const verificationHost = process.env.NODE_ENV === 'production'?
+  'https://forum.zheng.town/#/email-verification/' :
+  'http://127.0.0.1:4200/#/email-verification/';
 
 nev.configure({
-  verificationURL: process.env.NODE_ENV === 'production'?
-    'https://forum.zheng.town/#/email-verification/${URL}' :
-    'http://127.0.0.1:4200/#/email-verification/${URL}',
   persistentUserModel: User,
   tempUserCollection: 'tempusers',
-
-  transportOptions: {
-    service: 'Gmail',
-    auth: {
-      user: 'yuanzhengstl@gmail.com',
-      pass: 'chengxi0314'
-    }
-  },
-
-  verifyMailOptions: {
-    from: 'Do Not Reply <forumzy@yahoo.com>',
-    subject: 'Please confirm account',
-    html: 'Click the following link to confirm your account:</p><p>${URL}</p>',
-    text: 'Please confirm your account by clicking the following link: ${URL}'
-  }
-
+  shouldSendConfirmation: false,
 }, function (error, options) {
 });
 
@@ -91,7 +82,19 @@ router.post('/users', function(req, res, next){
 
       if(newTempUser) {
         var URL = newTempUser[nev.options.URLFieldName];
-        nev.sendVerificationEmail(user.email, URL, function (err, info) {
+        var mailgun = new Mailgun({apiKey: mailgun_api_key, domain: mailgun_domain});
+        var data = {
+          //Specify email data
+          from: ``,
+          //The email to contact
+          to: user.email,
+          //Subject and text data
+          subject: 'Please confirm account',
+          html: `Click the following link to confirm your account:</p><p>${verificationHost+URL}</p>`,
+          text: `Please confirm your account by clicking the following link: ${verificationHost+URL}`
+        };
+
+        mailgun.messages().send(data, function (err, body) {
           if(err){
             if(err.name === 'ValidationError'){
               console.log("validationError!");
@@ -103,11 +106,13 @@ router.post('/users', function(req, res, next){
               });
             }
           }
-          return res.json({
-            msg: 'An email has been sent to you. Please check it to verify your account.',
-            info: info
-          });
-        })
+          else {
+            return res.json({
+                  msg: 'An email has been sent to you. Please check it to verify your account.',
+                  info: body
+            });
+          }
+        });
       } else {
         res.json({
           msg: 'You have already signed up. Please check your email to verify your account.'
@@ -157,22 +162,9 @@ router.get('/users/email-verification/:url', function(req, res, next) {
   console.log("URL = "+url.toString());
   nev.confirmTempUser(url, function (err, user) {
     if(user){
-      nev.sendConfirmationEmail(user.email, function (err, info) {
-        if(err){
-          if(err.name === 'ValidationError'){
-            console.log("validationError!");
-            return res.status(422).json({
-              errors: Object.keys(err.errors).reduce(function (errors, key) {
-                errors[key] = err.errors[key].message;
-                return errors;
-              }, {})
-            });
-          }
-        }
-        return res.json({
-          msg: 'Confirmed!',
-          user: user
-        });
+      return res.json({
+        msg: 'Confirmed!',
+        user: user
       });
     } else {
       if(err.name === 'ValidationError'){
@@ -210,27 +202,35 @@ router.post('/users/forgot', function (req, res, next) {
       });
     },
     function (token, user, done) {
-      var smtpTransport = nodemailer.createTransport({
-        service: 'Gmail',
-        auth: {
-          user: 'yuanzhengstl@gmail.com',
-          pass: 'chengxi0314'
-        }
-      });
-      var mailOptions = {
+      var mailgun = new Mailgun({apiKey: mailgun_api_key, domain: mailgun_domain});
+      var data = {
         to: user.email,
-        from: 'yuanzhengstl@gmail.com',
+        from: mailgun_from_who,
         subject: 'Password Reset',
         text: 'You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n' +
         'Please click on the following link, or paste this into your browser to complete the process:\n\n' +
         req.headers.origin + '/#/reset/' + token + '\n\n' +
         'If you did not request this, please ignore this email and your password will remain unchanged.\n'
       };
-      smtpTransport.sendMail(mailOptions, function (err) {
-        return res.json({
-          info: 'An e-mail has been sent to ' + user.email + ' with further instructions.'
-        });
-        done(err, 'done');
+
+      mailgun.messages().send(data, function (err, body) {
+        if(err){
+          console.log("send email error!!: ", err);
+          if(err.name === 'ValidationError'){
+            console.log("validationError!");
+            return res.status(422).json({
+              errors: Object.keys(err.errors).reduce(function (errors, key) {
+                errors[key] = err.errors[key].message;
+                return errors;
+              }, {})
+            });
+          }
+        }
+        else {
+          return res.json({
+            info: 'An e-mail has been sent to ' + user.email + ' with further instructions.'
+          });
+        }
       });
     }
   ], function (err) {
@@ -253,7 +253,7 @@ router.get('/users/reset/:token', function (req, res) {
       }
       return res.json({user: user});
   })
-})
+});
 
 router.post('/users/reset/:token', function (req, res) {
   async.waterfall([
@@ -275,8 +275,7 @@ router.post('/users/reset/:token', function (req, res) {
             if(err) {
               return res.json({errors: {savePassword : " error. "}});
             }
-            return res.json({info: {NewPassword : " set successfully. "}})
-            done(err);
+            return res.json({info: {NewPassword : " set successfully. "}});
           });
         }
       });
