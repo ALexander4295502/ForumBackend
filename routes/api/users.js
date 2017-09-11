@@ -13,7 +13,7 @@ var crypto = require('crypto');
 var Mailgun = require('mailgun-js');
 
 var mailgun_api_key = 'key-41e1018166391483ab62350f08ece833';
-var mailgun_domain = 'sandbox0b45de7707c64ded8552042a6da18f95.mailgun.org';
+var mailgun_domain = 'mail.rourouzhuzhu.com';
 var mailgun_from_who = 'Do Not Reply <email@zheng.town>';
 
 const verificationHost = process.env.NODE_ENV === 'production'?
@@ -96,6 +96,7 @@ router.post('/users', function(req, res, next){
 
         mailgun.messages().send(data, function (err, body) {
           if(err){
+            console.log(err);
             if(err.name === 'ValidationError'){
               console.log("validationError!");
               return res.status(422).json({
