@@ -5,6 +5,7 @@ router.use('/profiles', require('./profiles'));
 router.use('/articles', require('./articles'));
 router.use('/tags', require('./tags'));
 router.use('/viewcount', require('./pageViewCounts'));
+router.use('/contact', require('./contactEmail'));
 
 router.use(function (err, req, res, next) {
     if(err.name === 'ValidationError'){

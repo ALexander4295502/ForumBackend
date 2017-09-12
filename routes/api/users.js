@@ -7,7 +7,6 @@ var passport = require('passport');
 var User = mongoose.model('User');
 var auth = require('../auth');
 var async = require('async');
-var nodemailer = require('nodemailer');
 var nev = require('email-verification')(mongoose);
 var crypto = require('crypto');
 var Mailgun = require('mailgun-js');
