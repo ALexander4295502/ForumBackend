@@ -1,19 +1,7 @@
 # ForumBackend
 
-![npm](https://img.shields.io/npm/v/conduit-node.svg) ![license](https://img.shields.io/npm/l/conduit-node.svg) ![github-issues](https://img.shields.io/github/issues/gothinkster/productionready-node-api.svg)  ![Circle CI build status](https://circleci.com/gh/gothinkster/productionready-node-api.svg?style=svg)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-ForumBackend on node
-
-![nodei.co](https://nodei.co/npm/conduit-node.png?downloads=true&downloadRank=true&stars=true)
-
-![travis-status](https://img.shields.io/travis/gothinkster/productionready-node-api.svg)
-![stars](https://img.shields.io/github/stars/gothinkster/productionready-node-api.svg)
-![forks](https://img.shields.io/github/forks/gothinkster/productionready-node-api.svg)
-
-![forks](https://img.shields.io/github/forks/gothinkster/productionready-node-api.svg)
-
-![](https://david-dm.org/gothinkster/productionready-node-api/status.svg)
-![](https://david-dm.org/gothinkster/productionready-node-api/dev-status.svg)
 
 ## Features
 
